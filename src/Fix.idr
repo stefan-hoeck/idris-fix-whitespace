@@ -18,6 +18,7 @@ noTrailingSpace = reverse . dropWhile isSpace . reverse
 noTrailingNewlines : List1 $ List Char -> List1 $ List Char
 noTrailingNewlines = reverse . dropWhile1 (force . null) . cons [] . reverse
 
+-- reimplemented since original `unlines` to be testable.
 unlinesImpl : List1 $ List Char -> List Char
 unlinesImpl ([] ::: []) = [NL]
 unlinesImpl (h ::: t)   = h ++ run t
@@ -35,6 +36,8 @@ transformImpl = unlinesImpl
 ||| Transforms the given string in the following way:
 |||  * on every line, trailing whitespace characters are removed
 |||  * makes sure the string ends with exactly one newline character
+|||
+||| Note: So far, a newline character corresponds to `'\n'`.
 export
 transform : String -> String
 transform = fastPack . transformImpl . fastUnpack

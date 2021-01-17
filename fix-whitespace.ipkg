@@ -1,0 +1,10 @@
+package fix-whitespace
+
+executable = fix_whitespace
+
+main = Main
+
+sourcedir  = "src"
+depends    = base
+
+modules = Fix

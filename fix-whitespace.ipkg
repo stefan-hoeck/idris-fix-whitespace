@@ -5,6 +5,7 @@ executable = fix_whitespace
 main = Main
 
 sourcedir  = "src"
-depends    = base
+depends    = base,contrib
 
 modules = Fix
+        , Options

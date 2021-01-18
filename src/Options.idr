@@ -25,7 +25,7 @@ descs = [ MkOpt ['h'] ["help"]      (NoArg Help)
             "check and list files with issues (default)"
         , MkOpt ['f'] ["fix"]       (NoArg Fix)
             "check and fix files with issues"
-        , MkOpt ['d'] ["directory"] (ReqArg Dir "<director>")
+        , MkOpt ['d'] ["directory"] (ReqArg Dir "<directory>")
             "set source directory to process\n(default is the current directory)"
         , MkOpt ['e'] ["ext"] (ReqArg mkExt "<extensions>")
             "comma separated list of file extensions\n(default is \"idr\")"

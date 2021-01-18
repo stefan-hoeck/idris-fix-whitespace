@@ -1,33 +1,18 @@
 module Options
 
 import Data.List
+import System.Console.GetOpt
 
 public export
 data Option = Help | Verbose | Check | Fix | Quiet
 
-public export
-options : List Option
-options = [Help,Verbose,Check,Fix]
-
-public export
-record OptionDesc where
-  constructor MkDesc
-  short : Char
-  long  : String
-  desc  : String
-
-public export
-desc : Option -> OptionDesc
-desc Help    = MkDesc 'h' "--help"    "print this help text"
-desc Verbose = MkDesc 'v' "--verbose" "increase verbosity"
-desc Check   = MkDesc 'c' "--check"   "check and list files with issues"
-desc Fix     = MkDesc 'f' "--fix"     "check and fix files with issues"
-desc Quiet   = MkDesc 'q' "--quiet"   "decrease verbosity"
-
-public export
-readOptions : List String -> Either String (List Option)
-readOptions = map concat . traverse read
-  where read : String -> Either String (List Option)
+descs : List $ OptDescr Option
+descs = [ MkOpt ['h'] ["help"]    (NoArg Help)    "prints this help text"
+        , MkOpt ['v'] ["verbose"] (NoArg Verbose) "increase verbosity"
+        , MkOpt ['q'] ["quiet"]   (NoArg Quiet)   "decrease verbosity"
+        , MkOpt ['c'] ["check"]   (NoArg Quiet)   "check and list files with issues (default)"
+        , MkOpt ['f'] ["fix"]     (NoArg Quiet)   "check and fix files with issues"
+        ]
 
 public export
 record Config where
@@ -39,17 +24,20 @@ record Config where
 defaultConfig : Config
 defaultConfig = MkConfig {printHelp = False, verbosity = 1, checkOnly = True}
 
-decreaseNat : Nat -> Nat
-decreaseNat 0     = 0
-decreaseNat (S k) = k
+public export
+adjConfig : Config -> Option -> Config
+adjConfig c Help      = record { printHelp = True } c
+adjConfig c Verbose   = record { verbosity $= S } c
+adjConfig c Quiet     = record { verbosity $= (`minus` 1) } c
+adjConfig c Check     = record { checkOnly = True } c
+adjConfig c Fix       = record { checkOnly = False } c
 
 public export
-adjConfig : Option -> Config -> Config
-adjConfig Help      = record { printHelp = True }
-adjConfig Verbose   = record { verbosity $= S }
-adjConfig Quiet     = record { verbosity $= decreaseNat }
-adjConfig Check     = record { checkOnly = True }
-adjConfig Fix       = record { checkOnly = False }
+applyArgs : List String -> Either (List String) Config
+applyArgs args =
+  case getOpt RequireOrder descs args of
+       MkResult opts [] [] [] => Right $ foldl adjConfig defaultConfig opts
+       MkResult _ n u e       => Left $ map unknown (n ++ u) ++ e
 
-public export
-applyArgs : List String -> Either String Config
+  where unknown : String -> String
+        unknown = ("Unknown option: " ++)

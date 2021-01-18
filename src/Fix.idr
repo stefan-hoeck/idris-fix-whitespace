@@ -29,8 +29,8 @@ unlinesImpl (h ::: t)   = h ++ run t
 
 transformImpl : List Char -> List Char
 transformImpl = unlinesImpl
-              . noTrailingNewlines 
-              . map noTrailingSpace 
+              . noTrailingNewlines
+              . map noTrailingSpace
               . split isNL
 
 ||| Transforms the given string in the following way:

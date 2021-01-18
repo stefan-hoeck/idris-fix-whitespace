@@ -99,19 +99,19 @@ printInfo : HasIO io => io ()
 printInfo = putStrLn $ info "fix_whitespace"
 
 entries : String -> Prog $ List String
-entries pth = do trace $ "Trying to open directory " ++ pth 
-                 Right d <- openDir pth 
+entries pth = do trace $ "Trying to open directory " ++ pth
+                 Right d <- openDir pth
                          | Left _ => trace ("Not a directory: " ++ pth)
                                   *> trace ("Returning " ++ pth ++ " as file.")
-                                  $> [pth] 
+                                  $> [pth]
                  debug $ "Scanning directory " ++ pth
                  run d
 
   where run : Directory -> Prog $ List String
         run d = do trace $ "Getting next entry from " ++ pth
-                   Right e <- dirEntry d 
+                   Right e <- dirEntry d
                            | Left _ => do trace "No entries left"
-                                          closeDir d 
+                                          closeDir d
                                           pure []
                    trace $ "Found new entry: " ++ e
                    es <- run d

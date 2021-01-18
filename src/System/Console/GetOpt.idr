@@ -46,9 +46,9 @@ Functor ArgDescr where
   map f (OptArg g x) = OptArg (f . g) x
 
 ||| Each `OptDescr` describes a single option.
-||| 
+|||
 ||| The arguments to 'Option' are:
-||| 
+|||
 ||| * list of short option characters
 ||| * list of long option strings (without \"--\")
 ||| * argument descriptor
@@ -99,20 +99,20 @@ fmtLong (OptArg _ ad) lo = "--" ++ lo ++ "[=" ++ ad ++ "]"
 
 fmtOpt : OptDescr a -> List (String,String,String)
 fmtOpt (MkOpt sos los ad descr) =
-  let sosFmt = concat $ intersperse ", " (map (fmtShort ad) sos) 
-      losFmt = concat $ intersperse ", " (map (fmtLong ad) los) 
+  let sosFmt = concat $ intersperse ", " (map (fmtShort ad) sos)
+      losFmt = concat $ intersperse ", " (map (fmtLong ad) los)
    in case lines descr of
            []       => [(sosFmt,losFmt,"")]
            (h :: t) => (sosFmt,losFmt,h) :: map (\s => ("","",s)) t
 
 ||| Return a string describing the usage of a command, derived from
-||| the header (first argument) and the options described by the 
+||| the header (first argument) and the options described by the
 ||| second argument.
 public export
 usageInfo : (header : String) -> List $ OptDescr a -> String
 usageInfo header optDescr =
   let (ss,ls,ds)   = (unzip3 . concatMap fmtOpt) optDescr
-      paste        = \x,y,z => "  " ++ x ++ "  " ++ y ++ "  " ++ z 
+      paste        = \x,y,z => "  " ++ x ++ "  " ++ y ++ "  " ++ z
       table        = zipWith3 paste (sameLen ss) (sameLen ls) ds
    in unlines $ header :: table
 
@@ -210,12 +210,12 @@ getNext a              r _        = (NonOpt $ pack a,r)
 
 ||| Process the command-line, and return the list of values that matched
 ||| (and those that didn\'t). The arguments are:
-||| 
+|||
 ||| * The order requirements (see 'ArgOrder')
-||| 
+|||
 ||| * The option descriptions (see 'OptDescr')
-||| 
-||| * The actual command line arguments (presumably got from 
+|||
+||| * The actual command line arguments (presumably got from
 |||   'System.Environment.getArgs').
 export
 getOpt :  ArgOrder a                         -- non-option handling

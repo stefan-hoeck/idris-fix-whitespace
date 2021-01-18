@@ -53,7 +53,7 @@ throwOne : String -> Prog a
 throwOne e = throw [e]
 
 --------------------------------------------------------------------------------
---          Flire Handling
+--          File Handling
 --------------------------------------------------------------------------------
 
 tryFile :  (mod : String)
@@ -118,6 +118,10 @@ entries pth = do trace $ "Trying to open directory " ++ pth
                    if e == "." || e == ".."
                       then pure es
                       else map (++ es) $ entries (pth </> e)
+
+--------------------------------------------------------------------------------
+--          Main Program
+--------------------------------------------------------------------------------
 
 prog : Prog ()
 prog = do c@(MkConfig ph _ _ dir _) <- ask

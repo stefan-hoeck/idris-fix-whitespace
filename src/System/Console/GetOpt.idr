@@ -166,7 +166,7 @@ OptF a = List String -> ArgOrder a -> List $ OptDescr a -> (Result a,List String
 longOpt : String -> OptFun a
 longOpt ls rs descs =
   let (opt,arg) = break ('=' ==) ls
-      getWith   = \p => filter (isJust . find (p opt) . longNames) descs
+      getWith   = \p => filter (any (p opt) . longNames) descs
       exact     = getWith (==)
       options   = if null exact then getWith isPrefixOf else exact
       ads       = map argDescr options

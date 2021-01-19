@@ -105,7 +105,7 @@ setHidden = record {includeHidden = True}
 
 descs : List $ OptDescr (Config -> Config)
 descs = [ MkOpt ['h'] ["help"]      (NoArg help)
-           "prints this help text"
+           "prints this help text\n "
         , MkOpt ['v'] ["verbose"]   (NoArg $ adjVerbosity S)
             "increase verbosity (default verbosity is 2)\n "
         , MkOpt ['q'] ["quiet"]     (NoArg $ adjVerbosity pred)

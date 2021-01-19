@@ -20,6 +20,7 @@ Options:
 
 
   -h         --help           prints this help text
+
   -v         --verbose        increase verbosity (default verbosity is 2)
 
   -q         --quiet          decrease verbosity (default verbosity is 2)

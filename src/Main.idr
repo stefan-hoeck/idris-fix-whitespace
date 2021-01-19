@@ -27,8 +27,7 @@ run c (MkReaderT f) = do Right () <- runEitherT (f c)
 --------------------------------------------------------------------------------
 
 log : Nat -> Lazy String -> Prog ()
-log n msg = do MkConfig _ verbosity _ _ _ <- ask
-               if verbosity >= n then putStrLn msg else pure ()
+log n msg = ask >>= \c => when (c.verbosity >= n) (putStrLn msg)
 
 trace : Lazy String -> Prog ()
 trace = log 4
@@ -73,39 +72,40 @@ read = tryFile "reading" readFile
 write : (pth : String) -> (content : String) -> Prog ()
 write p c = tryFile "writing" (`writeFile` c) p
 
-doProc : String -> Prog ()
-doProc pth = do debug $ "Checking file " ++ pth
-                fix      <- map (not . checkOnly) ask
-                contents <- read pth
-                let newConts = transform contents
-                if newConts /= contents
-                   then do info  $ pth ++ ": Found some issues."
-                           when fix $ write pth newConts
-
-                   else debug $ pth ++ ": No issues found."
-
 procFile : String -> Prog ()
-procFile pth = do trace $ "Checking whether to process file " ++ pth
-                  exts  <- map extensions ask
-                  if any (\e => ("." ++ e) `isSuffixOf` pth) exts
-                     then doProc pth
-                     else trace $ "Ignoring file " ++ pth
+procFile pth = do debug $ "Checking file " ++ pth
+                  fix      <- map (not . checkOnly) ask
+                  contents <- read pth
+                  let newConts = transform contents
+                  if newConts /= contents
+                     then do info  $ pth ++ ": Found some issues."
+                             when fix $ write pth newConts
+
+                     else debug $ pth ++ ": No issues found."
 
 --------------------------------------------------------------------------------
 --          Scanning Directories
 --------------------------------------------------------------------------------
 
 printInfo : HasIO io => io ()
-printInfo = putStrLn $ info "fix_whitespace"
+printInfo = putStrLn info
 
-entries : String -> Prog $ List String
-entries pth = do trace $ "Trying to open directory " ++ pth
-                 Right d <- openDir pth
-                         | Left _ => trace ("Not a directory: " ++ pth)
-                                  *> trace ("Returning " ++ pth ++ " as file.")
-                                  $> [pth]
-                 debug $ "Scanning directory " ++ pth
-                 run d
+entries : (inDir : Bool) -> String -> Prog $ List String
+entries inDir pth =
+  do c <- ask
+     trace ("Checking whether file or dir is hidden: " ++ pth)
+     if (not inDir || includeDir pth c)
+        then do trace $ "Trying to open directory " ++ pth
+                Right d <- openDir pth
+                  | Left _ => do trace ("Not a directory: " ++ pth)
+                                 trace ("Checking whether to process " ++ pth)
+                                 if (not inDir || includeFile pth c)
+                                     then trace ("Including " ++ pth) $> [pth]
+                                     else trace ("Ignoring " ++ pth)  $> []
+                debug $ "Scanning directory " ++ pth
+                run d
+        else pure []
+
 
   where run : Directory -> Prog $ List String
         run d = do trace $ "Getting next entry from " ++ pth
@@ -117,21 +117,23 @@ entries pth = do trace $ "Trying to open directory " ++ pth
                    es <- run d
                    if e == "." || e == ".."
                       then pure es
-                      else map (++ es) $ entries (pth </> e)
+                      else map (++ es) $ entries True (pth </> e)
 
 --------------------------------------------------------------------------------
 --          Main Program
 --------------------------------------------------------------------------------
 
 prog : Prog ()
-prog = do c@(MkConfig ph _ _ dir _) <- ask
+prog = do c <- ask
           debug $ "Configuration: " ++ show c
-          if ph then printInfo
-                else entries dir >>= traverse_ procFile
+          if c.printHelp
+             then putStrLn info
+             else traverse (entries False) c.files  >>=
+                  traverse_ procFile . join
 
 main : IO ()
 main = do (pn :: args) <- getArgs
                        |  Nil => putStrLn "Missing executable name. Aborting..."
           Right config <- pure $ applyArgs args
-                       | Left es => traverse_ putStrLn es *> printInfo
+                       | Left es => traverse_ putStrLn es *> putStrLn shortInfo
           run config prog

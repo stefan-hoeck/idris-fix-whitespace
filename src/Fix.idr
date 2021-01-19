@@ -27,11 +27,17 @@ unlinesImpl (h ::: t)   = h ++ run t
         run (cs :: css) = NL :: cs ++ run css
 
 
+removeCRLF : List Char -> List Char
+removeCRLF []                   = []
+removeCRLF ('\r' :: '\n' :: xs) = '\n' :: removeCRLF xs
+removeCRLF (x :: xs)            = x :: removeCRLF xs
+
 transformImpl : List Char -> List Char
 transformImpl = unlinesImpl
               . noTrailingNewlines
               . map noTrailingSpace
               . split isNL
+              . removeCRLF
 
 ||| Transforms the given string in the following way:
 |||  * on every line, trailing whitespace characters are removed
@@ -78,6 +84,9 @@ transTest3 = Refl
 
 transTest4 : TestTransformImpl "test\ntrailing   \t" = "test\ntrailing\n"
 transTest4 = Refl
+
+transTest5 : TestTransformImpl "test\r\ntrailing" = "test\ntrailing\n"
+transTest5 = Refl
 
 Empties : List String
 Empties = [ ""

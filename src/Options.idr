@@ -146,7 +146,7 @@ applyArgs args =
 --------------------------------------------------------------------------------
 
 version : String
-version = "1.0.0"
+version = "1.1.0"
 
 progName : String
 progName = "fix_whitespace"

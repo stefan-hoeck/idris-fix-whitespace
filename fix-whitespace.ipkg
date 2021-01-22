@@ -7,6 +7,5 @@ main = Main
 sourcedir  = "src"
 depends    = base,contrib
 
-modules = System.Console.GetOpt
-        , Fix
+modules = Fix
         , Options

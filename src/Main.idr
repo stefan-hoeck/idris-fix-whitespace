@@ -45,11 +45,8 @@ warn = log 1
 --          Error Handling
 --------------------------------------------------------------------------------
 
-throw : List String -> Prog a
-throw es = MkReaderT \_ => left es
-
 throwOne : String -> Prog a
-throwOne e = throw [e]
+throwOne e = throwError [e]
 
 --------------------------------------------------------------------------------
 --          File Handling

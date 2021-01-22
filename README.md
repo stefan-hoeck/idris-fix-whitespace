@@ -44,6 +44,10 @@ Options:
 ## Building
 This has only been tested against Idris2 version 0.3.0.
 
+The latest version
+requires `Control.System.GetOpt` from contrib, which was added
+in commit 0906ac30b99eac20367b556b90bcd1c2deb3a35c.
+
 Use the following to build:
 
 ```

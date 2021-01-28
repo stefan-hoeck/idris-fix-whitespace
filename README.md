@@ -45,8 +45,8 @@ Options:
 This has only been tested against Idris2 version 0.3.0.
 
 The latest version
-requires `Control.System.GetOpt` from contrib, which was added
-in commit 0906ac30b99eac20367b556b90bcd1c2deb3a35c.
+requires `Data.String` from base, which was added
+in commit 05c9029b35c64873ab3ea13822039f004acd1101
 
 Use the following to build:
 

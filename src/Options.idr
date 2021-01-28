@@ -3,7 +3,7 @@ module Options
 import Data.List
 import Data.List1
 import Data.Nat
-import Data.Strings
+import Data.String
 
 import System.Console.GetOpt
 import System.Path

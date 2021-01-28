@@ -3,7 +3,7 @@ module Main
 import Options
 import Fix
 
-import Data.Strings
+import Data.String
 
 import Control.Monad.Either
 import Control.Monad.Reader

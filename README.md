@@ -44,9 +44,9 @@ Options:
 ## Building
 This has only been tested against Idris2 version 0.3.0.
 
-The latest version
-requires `Data.String` from base, which was added
-in commit 05c9029b35c64873ab3ea13822039f004acd1101
+The latest version uses the new .ipkg version numbers, which
+were added with support of hyphenated package names in commit
+4c7d0db4bcf44eea30bb1899be623aed11d9945c.
 
 Use the following to build:
 

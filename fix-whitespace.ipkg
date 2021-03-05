@@ -1,11 +1,15 @@
 package fix-whitespace
 
+authors    = "stefan-hoeck"
+version    = 1.2.0
+
 executable = fix_whitespace
 
 main = Main
 
 sourcedir  = "src"
-depends    = base,contrib
+depends    = base    >= 0.3.0
+           , contrib >= 0.3.0
 
 modules = Fix
         , Options

@@ -23,6 +23,3 @@ uninstall:
 clean:
 	@${IDRIS2} --clean ${lib_pkg}
 	@${RM} -r build
-
-foo:
-	@echo ${IDRIS2_PREFIX}

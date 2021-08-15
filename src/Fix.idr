@@ -15,14 +15,14 @@ dropWhile1 f (h ::: t) = h ::: dropWhile f t
 noTrailingSpace : List Char -> List Char
 noTrailingSpace = reverse . dropWhile isSpace . reverse
 
-noTrailingNewlines : List1 $ List Char -> List1 $ List Char
+noTrailingNewlines : List1 (List Char) -> List1 (List Char)
 noTrailingNewlines = reverse . dropWhile1 (force . null) . cons [] . reverse
 
 -- reimplemented since original `unlines` to be testable.
-unlinesImpl : List1 $ List Char -> List Char
+unlinesImpl : List1 (List Char) -> List Char
 unlinesImpl ([] ::: []) = [NL]
 unlinesImpl (h ::: t)   = h ++ run t
-  where run : List $ List Char -> List Char
+  where run : List (List Char) -> List Char
         run []          = []
         run (cs :: css) = NL :: cs ++ run css
 

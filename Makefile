@@ -4,7 +4,7 @@ IDRIS2_PREFIX ?= $(HOME)/.idris2
 
 lib_pkg = fix-whitespace.ipkg
 
-.PHONY: all lib install clean clean-install
+.PHONY: all lib install clean clean-install develop
 
 all: lib
 
@@ -23,3 +23,6 @@ uninstall:
 clean:
 	@${IDRIS2} --clean ${lib_pkg}
 	@${RM} -r build
+
+develop:
+	find -name "*.idr" | entr -d idris2 --typecheck ${lib_pkg}

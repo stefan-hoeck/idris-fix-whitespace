@@ -16,7 +16,7 @@ noTrailingSpace : List Char -> List Char
 noTrailingSpace = reverse . dropWhile isSpace . reverse
 
 noTrailingNewlines : List1 (List Char) -> List1 (List Char)
-noTrailingNewlines = reverse . dropWhile1 (force . null) . cons [] . reverse
+noTrailingNewlines = reverse . dropWhile1 (\x => null x) . cons [] . reverse
 
 -- reimplemented since original `unlines` to be testable.
 unlinesImpl : List1 (List Char) -> List Char

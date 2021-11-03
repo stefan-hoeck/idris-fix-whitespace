@@ -106,10 +106,10 @@ entries inDir pth =
 
   where run : Directory -> Prog $ List String
         run d = do trace $ "Getting next entry from " ++ pth
-                   Right e <- dirEntry d
-                           | Left _ => do trace "No entries left"
-                                          closeDir d
-                                          pure []
+                   Right (Just e) <- nextDirEntry d
+                     | _ => do trace "No entries left"
+                               closeDir d
+                               pure []
                    trace $ "Found new entry: " ++ e
                    es <- run d
                    if e == "." || e == ".."

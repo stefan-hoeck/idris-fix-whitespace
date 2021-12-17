@@ -86,22 +86,22 @@ includeFile s c =
 --------------------------------------------------------------------------------
 
 help : Config -> Config
-help = record {printHelp = True}
+help = {printHelp := True}
 
 adjVerbosity : (Nat -> Nat) -> Config -> Config
-adjVerbosity f = record {verbosity $= f}
+adjVerbosity f = {verbosity $= f}
 
 doFix : Bool -> Config -> Config
-doFix b = record {checkOnly = not b}
+doFix b = {checkOnly := not b}
 
 setExts : String -> Config -> Config
-setExts s = record {extensions = forget (split (',' ==) s)}
+setExts s = {extensions := forget (split (',' ==) s)}
 
 setAll : Config -> Config
-setAll = record {includeAll = True}
+setAll = {includeAll := True}
 
 setHidden : Config -> Config
-setHidden = record {includeHidden = True}
+setHidden = {includeHidden := True}
 
 descs : List $ OptDescr (Config -> Config)
 descs = [ MkOpt ['h'] ["help"]      (NoArg help)

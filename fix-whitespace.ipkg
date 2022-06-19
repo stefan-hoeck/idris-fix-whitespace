@@ -2,6 +2,7 @@ package fix-whitespace
 
 authors    = "stefan-hoeck"
 version    = 1.3.0
+brief      = "A small app for fixing whitespace issues in source files"
 
 executable = fix_whitespace
 

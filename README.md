@@ -13,7 +13,7 @@ will recursively adjust all files with the given extensions
 (see option --ext) in those directories. If no files are
 specified, the current directory will be traversed instead.
 
-```
+```sh
 Usage: fix_whitespace [options] [FILES]
 
 Options:

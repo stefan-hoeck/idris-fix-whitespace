@@ -13,7 +13,7 @@ will recursively adjust all files with the given extensions
 (see option --ext) in those directories. If no files are
 specified, the current directory will be traversed instead.
 
-```
+```sh
 Usage: fix_whitespace [options] [FILES]
 
 Options:
@@ -42,14 +42,10 @@ Options:
 ```
 
 ## Building
-This has only been tested against Idris2 version 0.3.0.
+It is strongly recommended to use a package manger like
+[pack](https://github.com/stefan-hoeck/idris2-pack) to build the
+executable:
 
-The latest version uses the new .ipkg version numbers, which
-were added with support of hyphenated package names in commit
-4c7d0db4bcf44eea30bb1899be623aed11d9945c.
-
-Use the following to build:
-
-```
-idris2 --build fix-whitespace.ipkg
+```sh
+pack install-app fix-whitespace
 ```

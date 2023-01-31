@@ -3,6 +3,7 @@ module Main
 import Options
 import Fix
 
+import Data.FilePath
 import Data.String
 
 import Control.Monad.Either
@@ -11,7 +12,8 @@ import Control.Monad.Reader
 import System
 import System.File
 import System.Directory
-import System.Path
+
+import Text.PrettyPrint.Bernardy
 
 ||| Error handling and config passing in one transformer stack
 Prog : Type -> Type
@@ -54,31 +56,31 @@ throwOne e = throwError [e]
 
 tryFile :  (mod : String)
         -> (String -> Prog (Either FileError a))
-        -> (pth : String)
+        -> (pth : FilePath)
         -> Prog a
-tryFile mod p pth = do trace $ mod ++ " file " ++ pth
-                       Right a <- p pth
-                               |  Left e => throwOne $ "Error when " ++ mod
-                                                     ++ " file " ++ pth ++ ": "
-                                                     ++ show e
-                       pure a
+tryFile mod p pth = do
+  trace $ "\{mod} \{pth}"
+  Right a <- p (interpolate pth)
+    |  Left e => throwOne $ "Error when \{mod} \{pth}: \{show e}"
+  pure a
 
-read : String -> Prog String
+read : FilePath -> Prog String
 read = tryFile "reading" readFile
 
-write : (pth : String) -> (content : String) -> Prog ()
+write : (pth : FilePath) -> (content : String) -> Prog ()
 write p c = tryFile "writing" (`writeFile` c) p
 
-procFile : String -> Prog ()
-procFile pth = do debug $ "Checking file " ++ pth
-                  fix      <- map (not . checkOnly) ask
-                  contents <- read pth
-                  let newConts = transform contents
-                  if newConts /= contents
-                     then do info  $ pth ++ ": Found some issues."
-                             when fix $ write pth newConts
-
-                     else debug $ pth ++ ": No issues found."
+procFile : FilePath -> Prog ()
+procFile pth = do
+  debug $ "Checking file \{pth}"
+  fix      <- map (not . checkOnly) ask
+  contents <- read pth
+  let newConts = transform contents
+  if newConts /= contents
+     then do
+       info  $ "\{pth}: Found some issues."
+       when fix $ write pth newConts
+     else debug $ "\{pth}: No issues found."
 
 --------------------------------------------------------------------------------
 --          Scanning Directories
@@ -87,50 +89,60 @@ procFile pth = do debug $ "Checking file " ++ pth
 printInfo : HasIO io => io ()
 printInfo = putStrLn info
 
-entries : (inDir : Bool) -> String -> Prog $ List String
-entries inDir pth =
-  do c <- ask
-     trace ("Checking whether file or dir is hidden: " ++ pth)
-     if (not inDir || includeDir pth c)
-        then do trace $ "Trying to open directory " ++ pth
-                Right d <- openDir pth
-                  | Left _ => do trace ("Not a directory: " ++ pth)
-                                 trace ("Checking whether to process " ++ pth)
-                                 if (not inDir || includeFile pth c)
-                                     then trace ("Including " ++ pth) $> [pth]
-                                     else trace ("Ignoring " ++ pth)  $> []
-                debug $ "Scanning directory " ++ pth
-                run d
-        else pure []
+body : String -> Maybe Body
+body "."  = Nothing
+body ".." = Nothing
+body s    = parse s
 
+entries : (inDir : Bool) -> FilePath -> Prog $ List FilePath
+entries inDir pth = do
+  c <- ask
+  trace ("Checking whether file or dir is hidden: \{pth}")
+  if (not inDir || includeDir pth c)
+    then do
+      trace "Trying to open directory \{pth}"
+      Right d <- openDir "\{pth}"
+        | Left _ => do
+            trace "Not a directory: \{pth}"
+            trace "Checking whether to process \{pth}"
+            if (not inDir || includeFile pth c)
+                then trace "Including \{pth}" $> [pth]
+                else trace "Ignoring \{pth}" $> []
+      debug $ "Scanning directory \{pth}"
+      run d
+    else pure []
 
-  where run : Directory -> Prog $ List String
-        run d = do trace $ "Getting next entry from " ++ pth
-                   Right (Just e) <- nextDirEntry d
-                     | _ => do trace "No entries left"
-                               closeDir d
-                               pure []
-                   trace $ "Found new entry: " ++ e
-                   es <- run d
-                   if e == "." || e == ".."
-                      then pure es
-                      else map (++ es) $ entries True (pth </> e)
+  where
+    run : Directory -> Prog $ List FilePath
+    run d = do
+      trace "Getting next entry from \{pth}"
+      Right (Just e) <- nextDirEntry d
+        | _ => trace "No entries left" >> closeDir d $> []
+      es <- run d
+      case body e of
+        Just b  => (++ es) <$> entries True (pth /> b)
+        Nothing => pure es
 
 --------------------------------------------------------------------------------
 --          Main Program
 --------------------------------------------------------------------------------
 
+LL80 : LayoutOpts
+LL80 = Opts 80
+
 prog : Prog ()
-prog = do c <- ask
-          debug $ "Configuration: " ++ show c
-          if c.printHelp
-             then putStrLn info
-             else traverse (entries False) c.files  >>=
-                  traverse_ procFile . join
+prog = do
+  c <- ask
+  debug "Configuration: \{render LL80 $ pretty c}"
+  if c.printHelp
+    then putStrLn info
+    else traverse (entries False) c.files  >>=
+         traverse_ procFile . join
 
 main : IO ()
-main = do (pn :: args) <- getArgs
-                       |  Nil => putStrLn "Missing executable name. Aborting..."
-          Right config <- pure $ applyArgs args
-                       | Left es => traverse_ putStrLn es *> putStrLn shortInfo
-          run config prog
+main = do
+  (pn :: args) <- getArgs
+    |  Nil => die "Missing executable name. Aborting..."
+  Right config <- pure $ applyArgs args
+    | Left es => traverse_ putStrLn es *> die shortInfo
+  run config prog

@@ -9,8 +9,11 @@ executable = fix_whitespace
 main = Main
 
 sourcedir  = "src"
-depends    = base    >= 0.5.1
-           , contrib >= 0.5.1
+depends    = base    >= 0.6.0
+           , filepath
+           , getopts
+           , elab-util
+           , elab-pretty
 
 modules = Fix
         , Options

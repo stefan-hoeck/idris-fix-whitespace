@@ -1,16 +1,29 @@
 module Options
 
+import Data.FilePath
 import Data.List
 import Data.List1
 import Data.Nat
 import Data.String
+import Derive.Prelude
+import Derive.Pretty
 
-import System.Console.GetOpt
-import System.Path
+import System.GetOpts
+
+%default total
+%language ElabReflection
 
 --------------------------------------------------------------------------------
 --          Program Config
 --------------------------------------------------------------------------------
+
+export %inline
+Pretty Body where
+  prettyPrec _ = line . interpolate
+
+export %inline
+Pretty FilePath where
+  prettyPrec _ = line . interpolate
 
 ||| Program Config
 public export
@@ -39,47 +52,37 @@ record Config where
   ||| List of file extensions to be checked when traversing
   ||| directories. If `includeAll` is set to `True`, this
   ||| is ignored.
-  extensions    : List String
+  extensions    : List Body
 
   ||| List of files and directories to be checked.
-  files         : List String
+  files         : List FilePath
 
-export
-Show Config where
-  show c =
-       "MkConfig {"
-    ++ "\nprintHelp = "      ++ show c.printHelp
-    ++ "\n,verbosity = "     ++ show (natToInteger c.verbosity)
-    ++ "\n,checkOnly = "     ++ show c.checkOnly
-    ++ "\n,includeAll = "    ++ show c.includeAll
-    ++ "\n,includeHidden = " ++ show c.includeHidden
-    ++ "\n,extensions = "    ++ show c.extensions
-    ++ "\n}"
+%runElab derive "Config" [Show,Eq,Pretty]
 
 init : List String -> Config
-init files = MkConfig { printHelp     = False
-                      , verbosity     = 2
-                      , checkOnly     = True
-                      , includeAll    = False
-                      , includeHidden = False
-                      , files         = if null files then ["."] else files
-                      , extensions    = ["idr"]
-                      }
+init fs = MkConfig {
+    printHelp     = False
+  , verbosity     = 2
+  , checkOnly     = True
+  , includeAll    = False
+  , includeHidden = False
+  , files         = case fs of [] => ["."]; _ => map fromString fs
+  , extensions    = ["idr"]
+  }
 
 ||| Tests, whether a file or directory is hidden and should
 ||| still be included.
 export
-includeDir : String -> Config -> Bool
-includeDir s c = let isHidden = any ("." `isPrefixOf`) $ fileName s
-                  in not isHidden || c.includeHidden
+includeDir : FilePath -> Config -> Bool
+includeDir p c = not (isHidden p) || c.includeHidden
 
 ||| Tests, whether a file should be included when traversing
 ||| a directory.
 export
-includeFile : String -> Config -> Bool
-includeFile s c =
-  let hasExt = any (\e => ("." ++ e) `isSuffixOf` s) c.extensions
-   in c.includeAll || hasExt
+includeFile : FilePath -> Config -> Bool
+includeFile p c =
+  let ext := extension p
+   in c.includeAll || any ((ext ==) . Just) c.extensions
 
 --------------------------------------------------------------------------------
 --          Applying Command Line Args
@@ -95,7 +98,7 @@ doFix : Bool -> Config -> Config
 doFix b = {checkOnly := not b}
 
 setExts : String -> Config -> Config
-setExts s = {extensions := forget (split (',' ==) s)}
+setExts s = {extensions := mapMaybe parse $ forget (split (',' ==) s)}
 
 setAll : Config -> Config
 setAll = {includeAll := True}
@@ -135,7 +138,7 @@ export
 applyArgs : List String -> Either (List String) Config
 applyArgs args =
   case getOpt RequireOrder descs args of
-       MkResult opts n  [] [] => Right $ foldl (flip apply) (init n) opts
+       MkResult os n  [] [] => Right $ foldl (flip apply) (init n) os
        MkResult _ _ u e       => Left $ map unknown u ++ e
 
   where unknown : String -> String
@@ -155,20 +158,21 @@ usage : String
 usage = "Usage: " ++ progName ++ " [options] [FILES]\n\nOptions:\n"
 
 synopsis : String
-synopsis = unlines [ progName ++ " version " ++ version
-                   , ""
-                   , "  Removes trailing whitespace characters from the specified"
-                   , "  text files making sure every text file ends with exactly one"
-                   , "  newline character. Windows style line breaks are replaced"
-                   , "  by Unix newline characters."
-                   , ""
-                   , "  If the passed file list contains directories, " ++ progName
-                   , "  will recursively adjust all files with the given extensions"
-                   , "  (see option --ext) in those directories. If no files are"
-                   , "  specified, the current directory will be traversed instead."
-                   , ""
-                   , usage
-                   ]
+synopsis = unlines [
+    progName ++ " version " ++ version
+  , ""
+  , "  Removes trailing whitespace characters from the specified"
+  , "  text files making sure every text file ends with exactly one"
+  , "  newline character. Windows style line breaks are replaced"
+  , "  by Unix newline characters."
+  , ""
+  , "  If the passed file list contains directories, " ++ progName
+  , "  will recursively adjust all files with the given extensions"
+  , "  (see option --ext) in those directories. If no files are"
+  , "  specified, the current directory will be traversed instead."
+  , ""
+  , usage
+  ]
 
 export
 info : String

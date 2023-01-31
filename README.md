@@ -42,14 +42,10 @@ Options:
 ```
 
 ## Building
-This has only been tested against Idris2 version 0.3.0.
-
-The latest version uses the new .ipkg version numbers, which
-were added with support of hyphenated package names in commit
-4c7d0db4bcf44eea30bb1899be623aed11d9945c.
-
-Use the following to build:
+It is strongly recommended to use a package manger like
+[pack](https://github.com/stefan-hoeck/idris2-pack) to build the
+executable:
 
 ```
-idris2 --build fix-whitespace.ipkg
+pack install-app fix-whitespace
 ```

@@ -46,6 +46,6 @@ It is strongly recommended to use a package manger like
 [pack](https://github.com/stefan-hoeck/idris2-pack) to build the
 executable:
 
-```
+```sh
 pack install-app fix-whitespace
 ```

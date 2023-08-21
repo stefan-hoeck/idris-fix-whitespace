@@ -22,9 +22,11 @@ noTrailingNewlines = reverse . dropWhile1 (\x => null x) . cons [] . reverse
 unlinesImpl : List1 (List Char) -> List Char
 unlinesImpl ([] ::: []) = [NL]
 unlinesImpl (h ::: t)   = h ++ run t
-  where run : List (List Char) -> List Char
-        run []          = []
-        run (cs :: css) = NL :: cs ++ run css
+
+  where
+    run : List (List Char) -> List Char
+    run []          = []
+    run (cs :: css) = NL :: cs ++ run css
 
 
 removeCRLF : List Char -> List Char
@@ -33,11 +35,12 @@ removeCRLF ('\r' :: '\n' :: xs) = '\n' :: removeCRLF xs
 removeCRLF (x :: xs)            = x :: removeCRLF xs
 
 transformImpl : List Char -> List Char
-transformImpl = unlinesImpl
-              . noTrailingNewlines
-              . map noTrailingSpace
-              . split isNL
-              . removeCRLF
+transformImpl =
+    unlinesImpl
+  . noTrailingNewlines
+  . map noTrailingSpace
+  . split isNL
+  . removeCRLF
 
 ||| Transforms the given string in the following way:
 |||  * on every line, trailing whitespace characters are removed
@@ -89,13 +92,14 @@ transTest5 : TestTransformImpl "test\r\ntrailing" = "test\ntrailing\n"
 transTest5 = Refl
 
 Empties : List String
-Empties = [ ""
-          , "\n"
-          , "\n\n"
-          , "\n\n\n"
-          , " \n  \n\n"
-          , " \n  \n\n\t"
-          ]
+Empties =
+  [ ""
+  , "\n"
+  , "\n\n"
+  , "\n\n\n"
+  , " \n  \n\n"
+  , " \n  \n\n\t"
+  ]
 
 testEmpties : map TestTransformImpl Empties = replicate (length Empties) "\n"
 testEmpties = Refl

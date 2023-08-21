@@ -60,15 +60,16 @@ record Config where
 %runElab derive "Config" [Show,Eq,Pretty]
 
 init : List String -> Config
-init fs = MkConfig {
-    printHelp     = False
-  , verbosity     = 2
-  , checkOnly     = True
-  , includeAll    = False
-  , includeHidden = False
-  , files         = case fs of [] => ["."]; _ => map fromString fs
-  , extensions    = ["idr"]
-  }
+init fs =
+  MkConfig
+    { printHelp     = False
+    , verbosity     = 2
+    , checkOnly     = True
+    , includeAll    = False
+    , includeHidden = False
+    , files         = case fs of [] => ["."]; _ => map fromString fs
+    , extensions    = ["idr"]
+    }
 
 ||| Tests, whether a file or directory is hidden and should
 ||| still be included.
@@ -107,42 +108,46 @@ setHidden : Config -> Config
 setHidden = {includeHidden := True}
 
 descs : List $ OptDescr (Config -> Config)
-descs = [ MkOpt ['h'] ["help"]      (NoArg help)
-           "prints this help text\n "
-        , MkOpt ['v'] ["verbose"]   (NoArg $ adjVerbosity S)
-            "increase verbosity (default verbosity is 2)\n "
-        , MkOpt ['q'] ["quiet"]     (NoArg $ adjVerbosity pred)
-            "decrease verbosity (default verbosity is 2)\n "
-        , MkOpt ['c'] ["check"]     (NoArg $ doFix False)
-            "check and list files with issues (default)\n "
-        , MkOpt ['f'] ["fix"]       (NoArg $ doFix True)
-            "check and fix files with issues\n "
-        , MkOpt ['e'] ["ext"]       (ReqArg setExts "<exts>")
-            $ unlines [ "comma separated list of extensions of files"
-                      , "to be included when traversing directories"
-                      , "(default is \"idr\")."
-                      , "Note: Files whose name starts with a dot will be"
-                      , "ignored unless '--includeHidden' is set."
-                      , ""
-                      ]
-        , MkOpt ['a'] ["all"]       (NoArg setAll)
-            "include all non-hidden files when traversing directories\n "
-        , MkOpt []    ["includeHidden"] (NoArg setHidden)
-            $ unlines [ "include hidden files (name starts with a dot)"
-                      , "when traversing directories"
-                      , ""
-                      ]
+descs =
+  [ MkOpt ['h'] ["help"]      (NoArg help)
+     "prints this help text\n "
+  , MkOpt ['v'] ["verbose"]   (NoArg $ adjVerbosity S)
+      "increase verbosity (default verbosity is 2)\n "
+  , MkOpt ['q'] ["quiet"]     (NoArg $ adjVerbosity pred)
+      "decrease verbosity (default verbosity is 2)\n "
+  , MkOpt ['c'] ["check"]     (NoArg $ doFix False)
+      "check and list files with issues (default)\n "
+  , MkOpt ['f'] ["fix"]       (NoArg $ doFix True)
+      "check and fix files with issues\n "
+  , MkOpt ['e'] ["ext"]       (ReqArg setExts "<exts>") $
+      unlines
+        [ "comma separated list of extensions of files"
+        , "to be included when traversing directories"
+        , "(default is \"idr\")."
+        , "Note: Files whose name starts with a dot will be"
+        , "ignored unless '--includeHidden' is set."
+        , ""
         ]
+  , MkOpt ['a'] ["all"]       (NoArg setAll)
+      "include all non-hidden files when traversing directories\n "
+  , MkOpt []    ["includeHidden"] (NoArg setHidden) $
+      unlines
+        [ "include hidden files (name starts with a dot)"
+        , "when traversing directories"
+        , ""
+        ]
+  ]
 
 export
 applyArgs : List String -> Either (List String) Config
 applyArgs args =
   case getOpt RequireOrder descs args of
-       MkResult os n  [] [] => Right $ foldl (flip apply) (init n) os
-       MkResult _ _ u e       => Left $ map unknown u ++ e
+    MkResult os n  [] [] => Right $ foldl (flip apply) (init n) os
+    MkResult _ _ u e       => Left $ map unknown u ++ e
 
-  where unknown : String -> String
-        unknown = ("Unknown option: " ++)
+  where
+    unknown : String -> String
+    unknown = ("Unknown option: " ++)
 
 --------------------------------------------------------------------------------
 --          Usage Info
@@ -158,21 +163,22 @@ usage : String
 usage = "Usage: " ++ progName ++ " [options] [FILES]\n\nOptions:\n"
 
 synopsis : String
-synopsis = unlines [
-    progName ++ " version " ++ version
-  , ""
-  , "  Removes trailing whitespace characters from the specified"
-  , "  text files making sure every text file ends with exactly one"
-  , "  newline character. Windows style line breaks are replaced"
-  , "  by Unix newline characters."
-  , ""
-  , "  If the passed file list contains directories, " ++ progName
-  , "  will recursively adjust all files with the given extensions"
-  , "  (see option --ext) in those directories. If no files are"
-  , "  specified, the current directory will be traversed instead."
-  , ""
-  , usage
-  ]
+synopsis =
+  unlines
+    [ progName ++ " version " ++ version
+    , ""
+    , "  Removes trailing whitespace characters from the specified"
+    , "  text files making sure every text file ends with exactly one"
+    , "  newline character. Windows style line breaks are replaced"
+    , "  by Unix newline characters."
+    , ""
+    , "  If the passed file list contains directories, " ++ progName
+    , "  will recursively adjust all files with the given extensions"
+    , "  (see option --ext) in those directories. If no files are"
+    , "  specified, the current directory will be traversed instead."
+    , ""
+    , usage
+    ]
 
 export
 info : String

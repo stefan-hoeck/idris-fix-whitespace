@@ -20,9 +20,9 @@ Prog : Type -> Type
 Prog t = ReaderT Config (EitherT (List String) IO) t
 
 run : Config -> Prog () -> IO ()
-run c (MkReaderT f) = do Right () <- runEitherT (f c)
-                                  | Left es => traverse_ putStrLn es
-                         pure ()
+run c (MkReaderT f) = do
+  Right () <- runEitherT (f c) | Left es => traverse_ putStrLn es
+  pure ()
 
 --------------------------------------------------------------------------------
 --          Logging
@@ -54,10 +54,11 @@ throwOne e = throwError [e]
 --          File Handling
 --------------------------------------------------------------------------------
 
-tryFile :  (mod : String)
-        -> (String -> Prog (Either FileError a))
-        -> (pth : FilePath)
-        -> Prog a
+tryFile :
+     (mod : String)
+  -> (String -> Prog (Either FileError a))
+  -> (pth : FilePath)
+  -> Prog a
 tryFile mod p pth = do
   trace $ "\{mod} \{pth}"
   Right a <- p (interpolate pth)
